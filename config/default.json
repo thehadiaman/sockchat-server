@@ -1,5 +1,7 @@
 {
     "PORT": "3000",
-    "DATABASE_URI": "",
-    "DATABASE_NAME": ""
+    "DATABASE_URI": "mongodb://localhost:27017",
+    "DATABASE_NAME": "sockchat",
+    "EMAIL_API": "",
+    "EMAIL": ""
 }

@@ -1,5 +1,6 @@
 const {userValidation} = require("../validation/users");
 const {User} = require("../database/users");
+const { sendEmail } = require("../validation/email");
 const router = require('express').Router();
 
 router.post('/', async(req, res)=>{
@@ -10,8 +11,11 @@ router.post('/', async(req, res)=>{
     if(user) return res.status(400).send("Email already in use");
 
     await User.signup(req.body);
+    await sendEmail(req.body.email, "SockChat email verification", "Verify your email", "<h3>SockChat user verification code is <u>%code%</u></h3>");
 
     res.send("User saved.");
 });
+
+
 
 module.exports = router;

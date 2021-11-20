@@ -7,9 +7,8 @@ exports.User = {
         return database().collection(databaseConfig.USER_COLLECTION).findOne(filter);
     },
     signup: async (body)=>{
-        return database().collection(databaseConfig.USER_COLLECTION).insertOne(
+        database().collection(databaseConfig.USER_COLLECTION).insertOne(
             await userSchema(body)
         );
-    },
-
-}
+    }
+};

@@ -1,5 +1,7 @@
 {
     "PORT": "PORT",
     "DATABASE_URI": "DB_URI",
-    "DATABASE_NAME": "DB"
+    "DATABASE_NAME": "DB",
+    "EMAIL_API": "EMAIL_API",
+    "EMAIL": "EMAIL"
 }
