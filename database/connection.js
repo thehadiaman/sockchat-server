@@ -17,4 +17,6 @@ exports.connect = async function() {
     });
 };
 
-exports.database = database;
+exports.database = function (){
+    return database;
+};

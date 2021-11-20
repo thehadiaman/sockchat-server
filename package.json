@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run": "node index",
+    "start": "node index",
     "dev": "nodemon index"
   },
   "keywords": [],
@@ -14,10 +14,13 @@
     "esversion": 9
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "config": "^3.3.6",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-async-errors": "^3.1.1",
+    "joi": "^17.4.2",
+    "lodash": "^4.17.21",
     "mongodb": "^4.1.4",
     "winston": "^3.3.3",
     "winston-mongodb": "^5.0.7"
