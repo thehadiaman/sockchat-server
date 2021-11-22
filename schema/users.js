@@ -12,7 +12,8 @@ exports.userSchema = async function(body) {
             error: 0,
             code: Math.floor(Math.random()*(999999-100000)+100000),
             time: Date.now(),
-            blocked: false
+            blocked: false,
+            expire: new Date()
         },
         followers: [],
         following: []

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const { User } = require('../database/users');
+const _ = require('lodash');
 
 module.exports = async(req, res, next)=>{
     try{
@@ -10,7 +11,7 @@ module.exports = async(req, res, next)=>{
 
         if(user.verification.blocked) return res.status(403).send('Account blocked, signup after 24 hours');
 
-        req.user = user;
+        req.user = _.pick(user, ['_id', 'email', 'name', 'username', 'verification', 'verification.time']);
         next();
     }catch(ex){
         res.status(400).send('Invalid token.');

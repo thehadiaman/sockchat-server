@@ -50,7 +50,21 @@ exports.User = {
                 },
                 $unset: {
                     "verification.invalid": "",
-                    "verification.code": ""
+                    "verification.error": "",
+                    "verification.code": "",
+                    "verification.time": "",
+                    "verification.blocked": "",
+                    "verification.expire": "",
+                }
+            }
+        );
+    },
+    resetValidationTime: (email)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(
+            {email: email},
+            {
+                $set: {
+                    "verification.time": Date.now()
                 }
             }
         );

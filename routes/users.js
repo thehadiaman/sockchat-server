@@ -17,7 +17,9 @@ router.post('/', async(req, res)=>{
     if(user) return res.status(400).send("Username already in use");
 
     await User.signup(req.body);
-    sendEmail(req.body.email, "SockChat email verification", "Verify your email", "<h3>SockChat user verification code is <u>%code%</u></h3>");
+    user = await User.getUser({email: req.body.email});
+    const emailBody = `<h3>SockChat user verification code is <u>${user.verification.code}</u></h3>`;
+    sendEmail(req.body.email, "SockChat email verification", "Verify your email", emailBody);
 
     res
     .header("x-auth-token", await generateJsonWebToken(req.body.email))
@@ -28,6 +30,19 @@ router.post('/', async(req, res)=>{
 router.get('/me', [auth, valid], async(req, res)=>{
     const user = await User.getUser({_id: req.user._id});
     res.send('user');
+});
+
+router.get('/getVerificationCode', auth, async(req, res)=>{
+    let user = req.user;
+    if((new Date().getMinutes() - new Date(user.verification.time).getMinutes())<1){
+        return res.send('Try after 5 minutes');
+    }
+
+    user = await User.getUser({email: user.email});
+    const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4>SockChat verification code, verify your email <u style=\"color:black;\">${user.verification.code}</u></h4>`;
+    await User.resetValidationTime(req.user.email);
+    sendEmail(req.user.email, "SockChat email verification", "Verify your email", emailBody);
+    res.send('Verification code');
 });
 
 router.get('/:id', async(req, res)=>{
@@ -44,7 +59,6 @@ router.get('/:id', async(req, res)=>{
         const user = await User.getUser({username: id});
         if(user) return res.send(true);
     }
-
     res.send(false);
 });
 
@@ -58,7 +72,8 @@ router.put('/verification', auth, async(req, res)=>{
         await User.invalidVerificationCode(req.user.email, req.user.verification);
 
         if(req.user.verification.invalid>=2){
-            const emailBody = "<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4 style=\"color:red;\">You entered invalid verification code for three times, so code changes to <u style=\"color:black;\">%code%.</u></h4>";
+            const user = await User.getUser({email: req.user.email});
+            const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4 style=\"color:red;\">You entered invalid verification code for three times, so code changes to <u style=\"color:black;\">${user.verification.code}</u></h4>`;
             sendEmail(req.user.email, "SockChat email verification", "Verify your email", emailBody);
         }
         return res.status(400).send('Invalid code.');
