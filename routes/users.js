@@ -5,6 +5,7 @@ const { generateJsonWebToken } = require("../validation/auth");
 const router = require('express').Router();
 const auth = require('../middleware/auth');
 const valid = require('../middleware/auth');
+const { generatePasswordResetLink } = require("../validation/passwordLink");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -18,7 +19,7 @@ router.post('/', async(req, res)=>{
 
     await User.signup(req.body);
     user = await User.getUser({email: req.body.email});
-    const emailBody = `<h3>SockChat user verification code is <u>${user.verification.code}</u></h3>`;
+    const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h3>SockChat user verification code is <u>${user.verification.code}</u></h3>`;
     sendEmail(req.body.email, "SockChat email verification", "Verify your email", emailBody);
 
     res
@@ -33,16 +34,48 @@ router.get('/me', [auth, valid], async(req, res)=>{
 });
 
 router.get('/getVerificationCode', auth, async(req, res)=>{
-    let user = req.user;
-    if((new Date().getMinutes() - new Date(user.verification.time).getMinutes())<1){
+    const user = req.user;
+    if(req.user.verification.verified) return res.send('Email already verified.');
+    if((new Date().getMinutes() - new Date(user.verification.time).getMinutes())<=5){
         return res.send('Try after 5 minutes');
     }
 
-    user = await User.getUser({email: user.email});
     const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4>SockChat verification code, verify your email <u style=\"color:black;\">${user.verification.code}</u></h4>`;
     await User.resetValidationTime(req.user.email);
     sendEmail(req.user.email, "SockChat email verification", "Verify your email", emailBody);
-    res.send('Verification code');
+    res.send('Verification code has send.');
+});
+
+router.put('/passwordResetLink', async(req, res)=>{
+    let id = req.body.id.toLowerCase();
+    if(!id) return res.status(400).send('Invalid credentials.');
+
+    const {error: usernameError} = validation('usernameSchema', {username: id});
+    const {error: emailError} = validation('emailSchema', {email: id});
+
+    let user = {};
+    if(usernameError && emailError){
+        return res.status(400).send("Invalid credentials");
+    }else if(usernameError){
+        user = await User.getUser({email: id});
+        if(!user) return res.status(400).send("Invalid credentials");
+    }else if(emailError){
+        user = await User.getUser({username: id});
+        if(!user) return res.status(400).send("Invalid credentials");
+    }
+
+    const time = (user.passwordReset && (new Date().getHours() - new Date(user.passwordReset.time).getHours())<=5);
+    if(time) return res.send('Try to reset password after 5 hours.');
+
+    const filter = emailError?{'username': id}: {'email': id};
+    
+    await User.generatePasswordResetCode(filter);
+    const link = `http://localhost:3001/resetPassword?token=${await generatePasswordResetLink(filter)}`;
+    
+    const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4>Reset your password with</h4><a href="${link}">${link}</a>`;
+    sendEmail(user.email, "SockChat password reset link", "Reset Password", emailBody);
+
+    res.send('Password reset link has send.');
 });
 
 router.get('/:id', async(req, res)=>{
@@ -63,7 +96,7 @@ router.get('/:id', async(req, res)=>{
 });
 
 router.put('/verification', auth, async(req, res)=>{
-    if(req.user.verification.verified) return res.status(400).send('User already verified.');
+    if(req.user.verification.verified) return res.status(400).send('Email already verified.');
     if(!req.body.code) return res.status(400).send('Invalid credentials.');
 
     const user = await User.getUser({email: req.user.email});
@@ -85,5 +118,6 @@ router.put('/verification', auth, async(req, res)=>{
     .header("access-control-expose-header", "x-auth-token")
     .send("User verified.");
 });
+
 
 module.exports = router;

@@ -68,5 +68,16 @@ exports.User = {
                 }
             }
         );
+    },
+    generatePasswordResetCode: (filter)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(
+            filter,
+            {
+                $set: {
+                    "passwordReset.code": Math.floor(Math.random()*(999999-100000)+100000),
+                    "passwordReset.time": Date.now()
+                }
+            }
+        );
     }
 };
