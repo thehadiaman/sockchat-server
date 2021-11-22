@@ -17,7 +17,7 @@ router.post('/', async(req, res)=>{
     if(user) return res.status(400).send("Username already in use");
 
     await User.signup(req.body);
-    await sendEmail(req.body.email, "SockChat email verification", "Verify your email", "<h3>SockChat user verification code is <u>%code%</u></h3>");
+    sendEmail(req.body.email, "SockChat email verification", "Verify your email", "<h3>SockChat user verification code is <u>%code%</u></h3>");
 
     res
     .header("x-auth-token", await generateJsonWebToken(req.body.email))
@@ -55,13 +55,12 @@ router.put('/verification', auth, async(req, res)=>{
     const user = await User.getUser({email: req.user.email});
     const invalidCode = user.verification.code!==parseInt(req.body.code);
     if(invalidCode){
-        await User.invalidVerificationCode(req.user.email, req.user.verification.invalid);
+        await User.invalidVerificationCode(req.user.email, req.user.verification);
 
         if(req.user.verification.invalid>=2){
             const emailBody = "<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4 style=\"color:red;\">You entered invalid verification code for three times, so code changes to <u style=\"color:black;\">%code%.</u></h4>";
             sendEmail(req.user.email, "SockChat email verification", "Verify your email", emailBody);
         }
-
         return res.status(400).send('Invalid code.');
     }
 

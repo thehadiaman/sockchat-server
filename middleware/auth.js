@@ -6,7 +6,9 @@ module.exports = async(req, res, next)=>{
     try{
         const decode = jwt.decode(req.header('x-auth-token'), config.get('JSON_PRIVATE_KEY'));
         const user = await User.getUser({email: decode.email, password: decode.code});
-        if(!user) return res.status(400).send('Invalid user credentials.');
+        if(!user) return res.status(401).send('Invalid user credentials.');
+
+        if(user.verification.blocked) return res.status(403).send('Account blocked, signup after 24 hours');
 
         req.user = user;
         next();

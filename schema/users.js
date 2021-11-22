@@ -9,7 +9,10 @@ exports.userSchema = async function(body) {
         verification: {
             verified: false,
             invalid: 0,
-            code: Math.floor(Math.random()*(999999-100000)+100000)
+            error: 0,
+            code: Math.floor(Math.random()*(999999-100000)+100000),
+            time: Date.now(),
+            blocked: false
         },
         followers: [],
         following: []
