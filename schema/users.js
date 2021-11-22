@@ -2,9 +2,9 @@ const bcrypt = require('bcrypt');
 
 exports.userSchema = async function(body) {
     return {
-        email: body.email,
+        email: body.email.toLowerCase(),
         name: body.name,
-        username: body.username,
+        username: body.username.toLowerCase(),
         password: await bcrypt.hash(body.password, await bcrypt.genSalt(10)),
         verification: {
             verified: false,

@@ -4,6 +4,7 @@ require('express-async-errors');
 
 require('./startup/logging')();
 require('./startup/config')();
+require('./startup/cors')(app);
 require('./startup/database')();
 require('./startup/routes')(app);
 

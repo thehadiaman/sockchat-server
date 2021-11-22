@@ -3,5 +3,6 @@
     "DATABASE_URI": "DB_URI",
     "DATABASE_NAME": "DB",
     "EMAIL_API": "EMAIL_API",
-    "EMAIL": "EMAIL"
+    "EMAIL": "EMAIL",
+    "JSON_PRIVATE_KEY": "PRIVATE_KEY" 
 }
