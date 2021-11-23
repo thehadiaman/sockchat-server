@@ -1,6 +1,7 @@
 const {database} = require("./connection");
 const databaseConfig = require('./config.json');
 const {userSchema} = require("../schema/users");
+const bcrypt = require('bcrypt');
 
 exports.User = {
     getUser: (filter)=>{
@@ -76,6 +77,19 @@ exports.User = {
                 $set: {
                     "passwordReset.code": Math.floor(Math.random()*(999999-100000)+100000),
                     "passwordReset.time": Date.now()
+                }
+            }
+        );
+    },
+    resetPassword: async(email, password)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(
+            {email: email},
+            {
+                $set: {
+                    "password": await bcrypt.hash(password, await bcrypt.genSalt(10))
+                },
+                $unset: {
+                    "passwordReset": ""
                 }
             }
         );

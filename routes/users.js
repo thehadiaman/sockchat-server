@@ -5,7 +5,7 @@ const { generateJsonWebToken } = require("../validation/auth");
 const router = require('express').Router();
 const auth = require('../middleware/auth');
 const valid = require('../middleware/auth');
-const { generatePasswordResetLink } = require("../validation/passwordLink");
+const { generatePasswordResetLink, validatePasswordResetLink } = require("../validation/passwordLink");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -68,14 +68,44 @@ router.put('/passwordResetLink', async(req, res)=>{
     if(time) return res.send('Try to reset password after 5 hours.');
 
     const filter = emailError?{'username': id}: {'email': id};
-    
     await User.generatePasswordResetCode(filter);
-    const link = `http://localhost:3001/resetPassword?token=${await generatePasswordResetLink(filter)}`;
-    
-    const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4>Reset your password with</h4><a href="${link}">${link}</a>`;
+    const link = `http://localhost:3001/api/users/resetPassword?token=${await generatePasswordResetLink(filter)}`;
+    const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4 style="margin-bottom: 50px">Reset your password with</h4><a href="${link}" style="margin-top: 100px;padding: 20px 40px 20px 40px;background-color: rgb(34, 235, 34);color: black;text-decoration: none;">Reset Password</a>`;
     sendEmail(user.email, "SockChat password reset link", "Reset Password", emailBody);
 
     res.send('Password reset link has send.');
+});
+
+router.put('/validatePasswordResetLink', async(req, res)=>{
+    const token = req.query.token;
+    if(!token) return res.status(400).send('Token required.');
+
+    const validateToken = await validatePasswordResetLink(token);
+    if(!validateToken) return res.status(400).send('Invalid token');
+
+    res.send('goodToken');
+});
+
+router.put('/resetPassword', async(req, res)=>{
+    const token = req.query.token;
+    const password = req.body.password;
+    const confirmPassword = req.body.confirmPassword;
+
+    const credentials = token && password && confirmPassword;
+    if(!credentials) return res.status(400).send('Invalid credentials.');
+
+    const passwords = password === confirmPassword;
+    if(!passwords) return res.send(400).send('Invalid password');
+
+    const {error: passwordValidationError} = validation('passwordSchema', {password: password});
+    if(passwordValidationError) return res.status(400).send(passwordValidationError.details[0].message);
+
+    const validateToken = await validatePasswordResetLink(token);
+    if(!validateToken) return res.status(400).send('Invalid token');
+    
+    await User.resetPassword(validateToken.email, password);
+
+    res.send('Password has reset.');
 });
 
 router.get('/:id', async(req, res)=>{

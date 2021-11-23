@@ -12,6 +12,9 @@ const schemas = {
     }),
     emailSchema: Joi.object({
         email: Joi.string().min(8).max(50).email().required()
+    }),
+    passwordSchema: Joi.object({
+        password: Joi.string().min(6).max(50).required()
     })
 };
 
