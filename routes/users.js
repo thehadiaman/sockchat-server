@@ -24,13 +24,13 @@ router.post('/', async(req, res)=>{
 
     res
     .header("x-auth-token", await generateJsonWebToken(req.body.email))
-    .header("access-control-expose-header", "x-auth-token")
+    .header("access-control-expose-headers", "x-auth-token")
     .send("User saved.");
 });
 
 router.get('/me', [auth, valid], async(req, res)=>{
     const user = await User.getUser({_id: req.user._id});
-    res.send('user');
+    res.send(user);
 });
 
 router.get('/getVerificationCode', auth, async(req, res)=>{
@@ -69,7 +69,7 @@ router.put('/passwordResetLink', async(req, res)=>{
 
     const filter = emailError?{'username': id}: {'email': id};
     await User.generatePasswordResetCode(filter);
-    const link = `http://localhost:3001/api/users/resetPassword?token=${await generatePasswordResetLink(filter)}`;
+    const link = `http://localhost:3000/resetPassword?token=${await generatePasswordResetLink(filter)}`;
     const emailBody = `<h1 style=\"text-align:center\"><u>SockChat</u></h1><h4 style="margin-bottom: 50px">Reset your password with</h4><a href="${link}" style="margin-top: 100px;padding: 20px 40px 20px 40px;background-color: rgb(34, 235, 34);color: black;text-decoration: none;">Reset Password</a>`;
     sendEmail(user.email, "SockChat password reset link", "Reset Password", emailBody);
 
@@ -83,7 +83,7 @@ router.put('/validatePasswordResetLink', async(req, res)=>{
     const validateToken = await validatePasswordResetLink(token);
     if(!validateToken) return res.status(400).send('Invalid token');
 
-    res.send('goodToken');
+    res.send(true);
 });
 
 router.put('/resetPassword', async(req, res)=>{
@@ -145,7 +145,7 @@ router.put('/verification', auth, async(req, res)=>{
     await User.validVerificationCode(req.user.email);
     res
     .header("x-auth-token", await generateJsonWebToken(req.user.email))
-    .header("access-control-expose-header", "x-auth-token")
+    .header("access-control-expose-headers", "x-auth-token")
     .send("User verified.");
 });
 

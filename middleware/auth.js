@@ -4,8 +4,8 @@ const { User } = require('../database/users');
 
 module.exports = async(req, res, next)=>{
     try{
-        const decode = jwt.decode(req.header('x-auth-token'), config.get('JSON_PRIVATE_KEY'));
-        const user = await User.getUser({email: decode.email, password: decode.code});
+        const decode = jwt.verify(req.header('x-auth-token'), config.get('JSON_PRIVATE_KEY'));
+        let user = await User.getUser({email: decode.email, password: decode.code});
         if(!user) return res.status(401).send('Invalid user credentials.');
 
         if(user.verification.blocked) return res.status(403).send('Account blocked, signup after 24 hours');

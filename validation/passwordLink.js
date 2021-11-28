@@ -23,7 +23,7 @@ exports.validatePasswordResetLink = async(token)=>{
     try{
         const encodedPayload = token;
         const privateKey = config.get('JSON_PRIVATE_KEY');
-        const decodedPayload = jwt.decode(encodedPayload, privateKey);
+        const decodedPayload = jwt.verify(encodedPayload, privateKey);
 
         const bs64bytes = base64.decode(decodedPayload.payload);
         const decoded = utf8.decode(bs64bytes);
@@ -37,6 +37,8 @@ exports.validatePasswordResetLink = async(token)=>{
 
         const user = await User.getUser(filter);
         if(!user) return false;
+
+        await User.makeLinkInvalid(user.email, user.passwordReset.try);
 
         return user;
     }catch (ex){

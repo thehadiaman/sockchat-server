@@ -76,7 +76,8 @@ exports.User = {
             {
                 $set: {
                     "passwordReset.code": Math.floor(Math.random()*(999999-100000)+100000),
-                    "passwordReset.time": Date.now()
+                    "passwordReset.time": Date.now(),
+                    "passwordReset.try": 0
                 }
             }
         );
@@ -89,9 +90,30 @@ exports.User = {
                     "password": await bcrypt.hash(password, await bcrypt.genSalt(10))
                 },
                 $unset: {
-                    "passwordReset": ""
+                    "passwordReset.code": ""
                 }
             }
         );
+    },
+    makeLinkInvalid: async(email, count)=>{
+        if(count>1){
+            return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(
+                {email: email},
+                {
+                    $unset: {
+                        "passwordReset.code": "",
+                        "passwordReset.try": ""
+                    }
+                }
+            );
+        }
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(
+            {email: email},
+            {
+                $inc: {
+                    "passwordReset.try": 1
+                }
+            }
+        ); 
     }
 };
