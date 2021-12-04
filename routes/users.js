@@ -95,7 +95,7 @@ router.put('/resetPassword', async(req, res)=>{
     if(!credentials) return res.status(400).send('Invalid credentials.');
 
     const passwords = password === confirmPassword;
-    if(!passwords) return res.send(400).send('Invalid password');
+    if(!passwords) return res.status(400).send('Invalid password');
 
     const {error: passwordValidationError} = validation('passwordSchema', {password: password});
     if(passwordValidationError) return res.status(400).send(passwordValidationError.details[0].message);
