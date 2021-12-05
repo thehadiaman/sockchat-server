@@ -4,6 +4,7 @@ const { sendEmail } = require("../validation/email");
 const { generateJsonWebToken } = require("../validation/auth");
 const router = require('express').Router();
 const auth = require('../middleware/auth');
+const checkLogin = require('../middleware/checkLogin');
 const valid = require('../middleware/auth');
 const { generatePasswordResetLink, validatePasswordResetLink } = require("../validation/passwordLink");
 
@@ -108,10 +109,13 @@ router.put('/resetPassword', async(req, res)=>{
     res.send('Password has reset.');
 });
 
-router.get('/:id', async(req, res)=>{
+router.get('/:id', checkLogin, async(req, res)=>{
     const id = req.params.id.toLowerCase();
     const {error: usernameError} = validation('usernameSchema', {username: id});
     const {error: emailError} = validation('emailSchema', {email: id});
+    
+    if(usernameError&&req.user&&(id===req.user.email)) return res.send(false);
+    if(emailError&&req.user&&(id===req.user.username)) return res.send(false);
 
     if(usernameError && emailError){
         return res.send(false);
