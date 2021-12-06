@@ -16,6 +16,7 @@ exports.userSchema = async function(body) {
             expire: new Date()
         },
         followers: [],
-        following: []
+        following: [],
+        posts: []
     };
 };

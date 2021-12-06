@@ -115,5 +115,10 @@ exports.User = {
                 }
             }
         ); 
+    },
+    updateProfile: async(filter, data)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(filter, {
+            $set: data
+        });
     }
 };

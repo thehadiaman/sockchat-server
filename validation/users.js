@@ -15,6 +15,16 @@ const schemas = {
     }),
     passwordSchema: Joi.object({
         password: Joi.string().min(6).max(50).required()
+    }),
+    userUpdateSchema: Joi.object({
+        name: Joi.string().min(3).max(50).required(),
+        username: Joi.string().alphanum().min(3).max(50).required(),
+        bio: Joi.string().min(0).max(250).allow(""),
+    }),
+    passwordUpdateSchema: Joi.object({
+        currentPassword: Joi.string().min(6).max(50).required(),
+        password: Joi.string().min(6).max(50).required(),
+        conformPassword: Joi.string().min(6).max(50).required()
     })
 };
 

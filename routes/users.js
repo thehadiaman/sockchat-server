@@ -7,6 +7,8 @@ const auth = require('../middleware/auth');
 const checkLogin = require('../middleware/checkLogin');
 const valid = require('../middleware/auth');
 const { generatePasswordResetLink, validatePasswordResetLink } = require("../validation/passwordLink");
+const _ = require('lodash');
+const bcrypt = require('bcrypt');
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -153,5 +155,35 @@ router.put('/verification', auth, async(req, res)=>{
     .send("User verified.");
 });
 
+router.put('/', [auth, valid], async(req, res)=>{
+    const body = _.pick(req.body, ['name', 'username', 'bio']);
+
+    const {error} = validation('userUpdateSchema', body);
+    if(error) return res.status(400).send(error.details[0].message);
+
+    if(req.user.username!==body.username){
+        const user = await User.getUser({username: body.username});
+        if(user) return res.status(400).send('Username already in use.');
+    }
+    
+    await User.updateProfile({email: req.user.email}, body);
+    res.send('User updated.');
+});
+
+router.put('/changePassword', [auth, valid], async(req, res)=>{
+    const body = _.pick(req.body, ['currentPassword', 'password', 'conformPassword']);
+
+    const verifyPassword = await bcrypt.compare(body.currentPassword, req.user.password);
+    if(!verifyPassword) return res.status(400).send('Invalid password.');
+
+    const conformPassword = body.password===body.conformPassword;
+    if(!conformPassword) return res.status(400).send('Password doesn\'t match.');
+
+    const {error} = validation('passwordUpdateSchema', body);
+    if(error) return res.status(400).send(error.details[0].message);
+    
+    await User.updateProfile({email: req.user.email}, {password: await bcrypt.hash(body.password, await bcrypt.genSalt(10))});
+    res.send('Password updated.');
+});
 
 module.exports = router;
