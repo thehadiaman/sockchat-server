@@ -183,7 +183,32 @@ router.put('/changePassword', [auth, valid], async(req, res)=>{
     if(error) return res.status(400).send(error.details[0].message);
     
     await User.updateProfile({email: req.user.email}, {password: await bcrypt.hash(body.password, await bcrypt.genSalt(10))});
-    res.send('Password updated.');
+    res
+    .header("x-auth-token", await generateJsonWebToken(req.user.email))
+    .header("access-control-expose-headers", "x-auth-token")
+    .send('Password updated.');
+});
+
+router.put('/scheduleDelete', [auth, valid], async(req, res)=>{
+    const body = _.pick(req.body, ['password']);
+
+    const {error} = validation('passwordSchema', body);
+    if(error) return res.status(400).send(error.details[0].message);
+
+    const verifyPassword = await bcrypt.compare(body.password, req.user.password);
+    if(!verifyPassword) return res.status(400).send('Invalid password.');
+
+    await User.updateProfile({email: req.user.email}, {"verification.expire": new Date()});
+
+    res.send("Account scheduled to delete after 24 hours.");
+});
+
+router.put('/cancelDelete', [auth, valid], async(req, res)=>{
+    if(!req.user.verification.expire) return res.send("User is not scheduled to delete");
+
+    await User.unsetData({email: req.user.email}, {"verification.expire": ""});
+
+    res.send("Request to delete your account have been cancelled.");
 });
 
 module.exports = router;

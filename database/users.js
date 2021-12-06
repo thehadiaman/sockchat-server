@@ -120,5 +120,10 @@ exports.User = {
         return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(filter, {
             $set: data
         });
+    },
+    unsetData: async(filter, data)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(filter, {
+            $unset: data
+        });
     }
 };
