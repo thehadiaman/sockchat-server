@@ -125,5 +125,14 @@ exports.User = {
         return database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate(filter, {
             $unset: data
         });
+    },
+    getUsers: (searchString)=>{
+        return database().collection(databaseConfig.USER_COLLECTION).aggregate([
+            {
+                $match: {
+                    username: { $regex: `^${searchString}`, $options: "i" }
+                }
+            }
+        ]).toArray();
     }
 };

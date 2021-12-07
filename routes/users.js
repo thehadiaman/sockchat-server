@@ -49,6 +49,14 @@ router.get('/getVerificationCode', auth, async(req, res)=>{
     res.send('Verification code has send.');
 });
 
+router.get('/getUsers', async(req, res)=>{
+    const searchString = req.query.searchString;
+    if(!searchString) return res.send([]);
+
+    const users = await User.getUsers(searchString);
+    res.send(users);
+});
+
 router.put('/passwordResetLink', async(req, res)=>{
     let id = req.body.id.toLowerCase();
     if(!id) return res.status(400).send('Invalid credentials.');
