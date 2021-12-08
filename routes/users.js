@@ -57,6 +57,15 @@ router.get('/getUsers', async(req, res)=>{
     res.send(users);
 });
 
+router.get('/getUser/:username', async(req, res)=>{
+    const username = req.params.username;
+    if(!username) return res.status(400).send({});
+
+    const user = await User.getUser({username: username});
+    if(!user) return res.status(400).send({});
+    res.send(user);
+});
+
 router.put('/passwordResetLink', async(req, res)=>{
     let id = req.body.id.toLowerCase();
     if(!id) return res.status(400).send('Invalid credentials.');
