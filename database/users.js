@@ -2,6 +2,7 @@ const {database} = require("./connection");
 const databaseConfig = require('./config.json');
 const {userSchema} = require("../schema/users");
 const bcrypt = require('bcrypt');
+const { ObjectID } = require("bson");
 
 exports.User = {
     getUser: (filter)=>{
@@ -134,5 +135,24 @@ exports.User = {
                 }
             }
         ]).toArray();
+    },
+    handleFollow: async(username, myUsername)=>{
+        const user = await database().collection(databaseConfig.USER_COLLECTION).findOne({username: username});
+        if(user.followers.includes(myUsername)) {
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: username}, {
+                $pull:{followers: myUsername}
+            });
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
+                $pull:{following: username}
+            });
+        }else{
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: username}, {
+                $push:{followers: myUsername}
+            });
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
+                $push:{following: username}
+            });
+        }
+        return true;
     }
 };

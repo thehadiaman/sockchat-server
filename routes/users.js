@@ -9,6 +9,7 @@ const valid = require('../middleware/auth');
 const { generatePasswordResetLink, validatePasswordResetLink } = require("../validation/passwordLink");
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
+const { ObjectID } = require("bson");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -226,6 +227,18 @@ router.put('/cancelDelete', [auth, valid], async(req, res)=>{
     await User.unsetData({email: req.user.email}, {"verification.expire": ""});
 
     res.send("Request to delete your account have been cancelled.");
+});
+
+router.put('/handleFollow', [auth, valid], async(req, res)=>{
+    if(!req.body.username) return res.status(400).send('Username required.');
+
+    let user = await User.getUser({username: req.body.username});
+    if(!user) return res.status(400).send('No user found.');
+
+    user = await User.handleFollow(req.body.username, req.user.username);
+    if(!user) return res.status(400).send('Invalid username.');
+
+    res.send('Action successful.');
 });
 
 module.exports = router;
