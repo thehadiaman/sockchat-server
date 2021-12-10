@@ -11,8 +11,22 @@ module.exports = (server) => {
     });
 
     io.on('connect', (socket) => {
-        socket.on('new', async(username)=>{
+
+        socket.on('newConnection', async(username)=>{
             await Socket.saveSocketId(username, socket.id);
+        });
+
+        socket.on('follow', async(data)=>{
+            const {username, isFollowed} = data;
+            let socketIds = await Socket.getSocketId({username : username});
+            
+            let me = await Socket.getSocketId({socketIds: socket.id});
+
+            if(socketIds && socketIds.socketIds.length>0){
+                for(let item of socketIds.socketIds){
+                    socket.to(item).emit((isFollowed?'followed':'unFollowed'), me.username);
+                }
+            }
         });
 
         socket.on('disconnect', async() => {

@@ -22,7 +22,7 @@ exports.Socket = {
         });
     },
 
-    getSocketId: (username)=>{
-        return database().collection(databaseConfig.SOCKET_COLLECTION).findOne({username});
+    getSocketId: (filter)=>{
+        return database().collection(databaseConfig.SOCKET_COLLECTION).findOne(filter);
     }
 };
