@@ -1,8 +1,6 @@
 const {database} = require("./connection");
 const databaseConfig = require('./config.json');
-const {userSchema} = require("../schema/users");
 const bcrypt = require('bcrypt');
-const { ObjectID } = require("bson");
 
 exports.User = {
     getUser: (filter)=>{

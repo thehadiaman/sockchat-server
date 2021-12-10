@@ -1,3 +1,4 @@
 {
-    "USER_COLLECTION": "users"
+    "USER_COLLECTION": "users",
+    "SOCKET_COLLECTION": "sockets"
 }
