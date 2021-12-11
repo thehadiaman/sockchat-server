@@ -10,6 +10,7 @@ const { generatePasswordResetLink, validatePasswordResetLink } = require("../val
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const { ObjectID } = require("bson");
+const { Notification } = require("../database/notification");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -235,10 +236,13 @@ router.put('/handleFollow', [auth, valid], async(req, res)=>{
     let user = await User.getUser({username: req.body.username});
     if(!user) return res.status(400).send('No user found.');
 
-    user = await User.handleFollow(req.body.username, req.user.username);
+    const followAction = await User.handleFollow(req.body.username, req.user.username);
     if(!user) return res.status(400).send('Invalid username.');
 
-    res.send('Action successful.');
+    const newNotification = `${followAction} by ${req.user.username}.`;
+    await Notification.createNotification(req.body.username, newNotification);
+
+    res.send(`${followAction} successfully.`);
 });
 
 module.exports = router;

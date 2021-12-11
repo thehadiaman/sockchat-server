@@ -24,7 +24,7 @@ module.exports = (server) => {
 
             if(socketIds && socketIds.socketIds.length>0){
                 for(let item of socketIds.socketIds){
-                    socket.to(item).emit((isFollowed?'followed':'unFollowed'), me.username);
+                    io.to(item).emit((isFollowed?'followed':'unFollowed'), {username: me.username});
                 }
             }
         });

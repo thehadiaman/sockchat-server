@@ -143,6 +143,7 @@ exports.User = {
             database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
                 $pull:{following: username}
             });
+            return 'UnFollowed';
         }else{
             database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: username}, {
                 $push:{followers: myUsername}
@@ -150,7 +151,7 @@ exports.User = {
             database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
                 $push:{following: username}
             });
+            return 'Followed';
         }
-        return true;
     }
 };

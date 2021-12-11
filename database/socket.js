@@ -11,6 +11,8 @@ exports.Socket = {
             });
         }
 
+        if(socket.socketIds.includes(socketId)) return false;
+
         database().collection(databaseConfig.SOCKET_COLLECTION).findOneAndUpdate({username}, {
             $push: {socketIds: socketId}
         });        
