@@ -9,8 +9,8 @@ const valid = require('../middleware/auth');
 const { generatePasswordResetLink, validatePasswordResetLink } = require("../validation/passwordLink");
 const _ = require('lodash');
 const bcrypt = require('bcrypt');
-const { ObjectID } = require("bson");
 const { Notification } = require("../database/notification");
+const { jsonParser } = require("config/parser");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -128,6 +128,11 @@ router.put('/resetPassword', async(req, res)=>{
     await User.resetPassword(validateToken.email, password);
 
     res.send('Password has reset.');
+});
+
+router.get('/notification-count', [auth, valid], async(req, res)=>{
+    const notifications = await Notification.getNotificationCount(req.user.username);
+    res.send(notifications.length>0?true:false);
 });
 
 router.get('/:id', checkLogin, async(req, res)=>{

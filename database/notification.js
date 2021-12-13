@@ -16,6 +16,15 @@ exports.Notification = {
                 $push: {notifications: {_id: ObjectId(), notification: notification, seen: false}}
             });
         }
-
+    },
+    getNotificationCount: (username)=>{
+        return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
+            {
+                $match: {username}
+            },
+            {
+                $unwind: '$notifications'
+            }
+        ]).toArray();
     }
 };
