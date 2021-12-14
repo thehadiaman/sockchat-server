@@ -17,14 +17,42 @@ exports.Notification = {
             });
         }
     },
-    getNotificationCount: (username)=>{
+    getNotificationList: (username)=>{
         return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
             {
                 $match: {username}
             },
             {
                 $unwind: '$notifications'
+            },
+            {
+                $match: {"notifications.seen": false}
             }
         ]).toArray();
+    },
+    getAllNotifications: (username)=>{
+        return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
+            {
+                $match: {username}
+            },
+            {
+                $unwind: "$notifications"
+            },
+            {
+                $project: {
+                    _id: "$notifications._id",
+                    notification: "$notifications.notification",
+                    seen: "$notifications.seen"
+                }
+            }
+        ]).toArray();
+    },
+    removeNotification: (username, notification)=>{
+        return database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOneAndUpdate(
+            {username},
+            {
+                $pull: {notifications: notification}
+            }
+        );
     }
 };

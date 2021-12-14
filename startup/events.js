@@ -1,4 +1,5 @@
 const {Socket} = require('../database/socket');
+const {Notification} = require('../database/notification');
 
 module.exports = (server) => {
     const io = require('socket.io')(server, {
@@ -18,13 +19,13 @@ module.exports = (server) => {
 
         socket.on('follow', async(data)=>{
             const {username, isFollowed} = data;
-            let socketIds = await Socket.getSocketId({username : username});
-            
+            const socketIds = await Socket.getSocketId({username : username});
+            const notificationCount = (await Notification.getNotificationList(username)).length;
             let me = await Socket.getSocketId({socketIds: socket.id});
 
             if(socketIds && socketIds.socketIds.length>0){
                 for(let item of socketIds.socketIds){
-                    io.to(item).emit((isFollowed?'followed':'unFollowed'), {username: me.username});
+                    io.to(item).emit((isFollowed?'followed':'unFollowed'), {username: me.username, notificationCount});
                 }
             }
         });

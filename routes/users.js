@@ -131,11 +131,17 @@ router.put('/resetPassword', async(req, res)=>{
 });
 
 router.get('/notification-count', [auth, valid], async(req, res)=>{
-    const notifications = await Notification.getNotificationCount(req.user.username);
-    res.send(notifications.length>0?true:false);
+    const notifications = await Notification.getNotificationList(req.user.username);
+    const countOfNotification = notifications.length;
+    res.send(String(countOfNotification));
 });
 
-router.get('/:id', checkLogin, async(req, res)=>{
+router.get('/get-notifications/:username', async(req, res)=>{
+    const notifications = await Notification.getAllNotifications(req.params.username);
+    res.send(notifications);
+});
+
+router.get('/checkId/:id', checkLogin, async(req, res)=>{
     const id = req.params.id.toLowerCase();
     const {error: usernameError} = validation('usernameSchema', {username: id});
     const {error: emailError} = validation('emailSchema', {email: id});
@@ -244,8 +250,15 @@ router.put('/handleFollow', [auth, valid], async(req, res)=>{
     const followAction = await User.handleFollow(req.body.username, req.user.username);
     if(!user) return res.status(400).send('Invalid username.');
 
-    const newNotification = `${followAction} by ${req.user.username}.`;
-    await Notification.createNotification(req.body.username, newNotification);
+    const notifications = await Notification.getAllNotifications(req.body.username);
+    const newNotification = `Followed by ${req.user.username}.`;
+    const notification = notifications.find(n=>n.notification===newNotification);
+
+    if(!notification&&followAction==='Followed'){
+        await Notification.createNotification(req.body.username, newNotification);
+    }else if(followAction==='UnFollowed'){
+        await Notification.removeNotification(req.body.username, notification);
+    }
 
     res.send(`${followAction} successfully.`);
 });
