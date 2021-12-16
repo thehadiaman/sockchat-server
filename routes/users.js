@@ -136,8 +136,8 @@ router.get('/notification-count', [auth, valid], async(req, res)=>{
     res.send(String(countOfNotification));
 });
 
-router.get('/get-notifications/:username', async(req, res)=>{
-    const notifications = await Notification.getAllNotifications(req.params.username);
+router.get('/get-notifications', [auth, valid], async(req, res)=>{
+    const notifications = await Notification.getAllNotifications(req.user.username);
     res.send(notifications);
 });
 
@@ -251,11 +251,11 @@ router.put('/handleFollow', [auth, valid], async(req, res)=>{
     if(!user) return res.status(400).send('Invalid username.');
 
     const notifications = await Notification.getAllNotifications(req.body.username);
-    const newNotification = `Followed by ${req.user.username}.`;
+    const newNotification = `started following by ${req.user.username}`;
     const notification = notifications.find(n=>n.notification===newNotification);
 
     if(!notification&&followAction==='Followed'){
-        await Notification.createNotification(req.body.username, newNotification);
+        await Notification.createNotification(req.body.username, newNotification, req.user.username);
     }else if(followAction==='UnFollowed'){
         await Notification.removeNotification(req.body.username, notification);
     }
