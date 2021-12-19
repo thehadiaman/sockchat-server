@@ -134,22 +134,23 @@ exports.User = {
             }
         ]).toArray();
     },
-    handleFollow: async(username, myUsername)=>{
-        const user = await database().collection(databaseConfig.USER_COLLECTION).findOne({username: username});
-        if(user.followers.includes(myUsername)) {
-            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: username}, {
-                $pull:{followers: myUsername}
+    handleFollow: async(_id, my_id)=>{
+        const user = await database().collection(databaseConfig.USER_COLLECTION).findOne({_id});
+
+        if(user.followers.find(id=>String(my_id)===String(id))) {
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({_id}, {
+                $pull:{followers: my_id}
             });
-            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
-                $pull:{following: username}
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({_id: my_id}, {
+                $pull:{following: _id}
             });
             return 'UnFollowed';
         }else{
-            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: username}, {
-                $push:{followers: myUsername}
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({_id}, {
+                $push:{followers: my_id}
             });
-            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({username: myUsername}, {
-                $push:{following: username}
+            database().collection(databaseConfig.USER_COLLECTION).findOneAndUpdate({_id: my_id}, {
+                $push:{following: _id}
             });
             return 'Followed';
         }

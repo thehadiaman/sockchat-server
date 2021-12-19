@@ -3,24 +3,24 @@ const databaseConfig = require('./config.json');
 const { ObjectId } = require("mongodb");
 
 exports.Notification = {
-    createNotification: async(username, notification, user)=>{
+    createNotification: async(userId, notification, user)=>{
 
-        const existNotification = await database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOne({username});
+        const existNotification = await database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOne({userId});
         if(!existNotification){
             database().collection(databaseConfig.NOTIFICATION_COLLECTION).insertOne({
-                username,
+                userId,
                 notifications: [{_id: new ObjectId(), notification: notification, seen: false, cause: user}],
             });
         }else{
-            database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOneAndUpdate({username}, {
+            database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOneAndUpdate({userId}, {
                 $push: {notifications: {_id: ObjectId(), notification: notification, seen: false, cause: user}}
             });
         }
     },
-    getNotificationList: (username)=>{
+    getNotificationList: (userId)=>{
         return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
             {
-                $match: {username}
+                $match: {userId: userId}
             },
             {
                 $unwind: '$notifications'
@@ -30,10 +30,10 @@ exports.Notification = {
             }
         ]).toArray();
     },
-    getAllNotifications: (username)=>{
+    getAllNotifications: (userId)=>{
         return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
             {
-                $match: {username}
+                $match: {userId}
             },
             {
                 $unwind: "$notifications"
@@ -42,7 +42,7 @@ exports.Notification = {
                 $lookup:{
                     from: "users",
                     localField: "notifications.cause",
-                    foreignField: "username",
+                    foreignField: "_id",
                     as: "user"
                 }
             },
@@ -51,14 +51,14 @@ exports.Notification = {
                     _id: "$notifications._id",
                     notification: "$notifications.notification",
                     seen: "$notifications.seen",
-                    username: "$user.username"
+                    cause: { $arrayElemAt: [ "$user.username", 0 ] }
                 }
             }
         ]).toArray();
     },
-    removeNotification: (username, notification)=>{
+    removeNotification: (userId, notification)=>{
         return database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOneAndUpdate(
-            {username},
+            {userId},
             {
                 $pull: {notifications: notification}
             }

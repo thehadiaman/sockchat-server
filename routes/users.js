@@ -11,6 +11,7 @@ const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const { Notification } = require("../database/notification");
 const { jsonParser } = require("config/parser");
+const { ObjectID } = require("bson");
 
 router.post('/', async(req, res)=>{
     const {error} = validation('userSchema', req.body);
@@ -131,13 +132,13 @@ router.put('/resetPassword', async(req, res)=>{
 });
 
 router.get('/notification-count', [auth, valid], async(req, res)=>{
-    const notifications = await Notification.getNotificationList(req.user.username);
+    const notifications = await Notification.getNotificationList(req.user._id);
     const countOfNotification = notifications.length;
     res.send(String(countOfNotification));
 });
 
 router.get('/get-notifications', [auth, valid], async(req, res)=>{
-    const notifications = await Notification.getAllNotifications(req.user.username);
+    const notifications = await Notification.getAllNotifications(req.user._id);
     res.send(notifications);
 });
 
@@ -242,22 +243,23 @@ router.put('/cancelDelete', [auth, valid], async(req, res)=>{
 });
 
 router.put('/handleFollow', [auth, valid], async(req, res)=>{
-    if(!req.body.username) return res.status(400).send('Username required.');
+    if(!req.body._id) return res.status(400).send('User id required.');
+    req.body._id = ObjectID(req.body._id);
+    req.user._id = ObjectID(req.user._id);
 
-    let user = await User.getUser({username: req.body.username});
+    let user = await User.getUser({_id: req.body._id});
     if(!user) return res.status(400).send('No user found.');
 
-    const followAction = await User.handleFollow(req.body.username, req.user.username);
-    if(!user) return res.status(400).send('Invalid username.');
+    const followAction = await User.handleFollow(req.body._id, req.user._id);
 
-    const notifications = await Notification.getAllNotifications(req.body.username);
+    const notifications = await Notification.getAllNotifications(req.body._id);
     const newNotification = `started following by ${req.user.username}`;
     const notification = notifications.find(n=>n.notification===newNotification);
 
     if(!notification&&followAction==='Followed'){
-        await Notification.createNotification(req.body.username, newNotification, req.user.username);
+        await Notification.createNotification(req.body._id, newNotification, req.user._id);
     }else if(followAction==='UnFollowed'){
-        await Notification.removeNotification(req.body.username, notification);
+        await Notification.removeNotification(req.body._id, notification);
     }
 
     res.send(`${followAction} successfully.`);

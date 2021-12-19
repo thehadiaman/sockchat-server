@@ -2,18 +2,18 @@ const {database} = require("./connection");
 const databaseConfig = require('./config.json');
 
 exports.Socket = {
-    saveSocketId: async(username, socketId)=>{
-        const socket = await database().collection(databaseConfig.SOCKET_COLLECTION).findOne({username});
+    saveSocketId: async(userId, socketId)=>{
+        const socket = await database().collection(databaseConfig.SOCKET_COLLECTION).findOne({userId});
         if(!socket){
             return database().collection(databaseConfig.SOCKET_COLLECTION).insertOne({
-                username: username,
+                userId: userId,
                 socketIds: [socketId]
             });
         }
 
         if(socket.socketIds.includes(socketId)) return false;
 
-        database().collection(databaseConfig.SOCKET_COLLECTION).findOneAndUpdate({username}, {
+        database().collection(databaseConfig.SOCKET_COLLECTION).findOneAndUpdate({userId}, {
             $push: {socketIds: socketId}
         });        
     },
