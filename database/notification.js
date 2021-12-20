@@ -30,6 +30,21 @@ exports.Notification = {
             }
         ]).toArray();
     },
+    getNotifications: (userId)=>{
+        return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
+            {
+                $match: {userId}
+            },
+            {
+                $project:{
+                    _id: { $arrayElemAt: [ "$notifications._id", 0 ] },
+                    notification: { $arrayElemAt: [ "$notifications.notification", 0 ] },
+                    seen: { $arrayElemAt: [ "$notifications.seen", 0 ] },
+                    cause: { $arrayElemAt: [ "$notifications.cause", 0 ] }
+                }
+            }
+        ]).toArray();
+    },
     getAllNotifications: (userId)=>{
         return database().collection(databaseConfig.NOTIFICATION_COLLECTION).aggregate([
             {
@@ -61,6 +76,18 @@ exports.Notification = {
             {userId},
             {
                 $pull: {notifications: notification}
+            }
+        );
+    },
+    makeNotificationSeen: (userId)=>{
+        return database().collection(databaseConfig.NOTIFICATION_COLLECTION).findOneAndUpdate(
+            {userId},
+            {
+                $set: {"notifications.$[filter].seen": true}
+            }, {
+                arrayFilters: [{
+                    "filter.seen": false
+                }]
             }
         );
     }

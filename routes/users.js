@@ -252,7 +252,7 @@ router.put('/handleFollow', [auth, valid], async(req, res)=>{
 
     const followAction = await User.handleFollow(req.body._id, req.user._id);
 
-    const notifications = await Notification.getAllNotifications(req.body._id);
+    const notifications = await Notification.getNotifications(req.body._id);
     const newNotification = `started following by ${req.user.username}`;
     const notification = notifications.find(n=>n.notification===newNotification);
 
@@ -263,6 +263,16 @@ router.put('/handleFollow', [auth, valid], async(req, res)=>{
     }
 
     res.send(`${followAction} successfully.`);
+});
+
+router.put('/notification-seen', [auth, valid], async(req, res)=>{
+    const notificationCount = (await Notification.getNotificationList(ObjectID(req.user._id))).length;
+    if(notificationCount===0){
+        return res.send('No notification found');
+    }
+
+    await Notification.makeNotificationSeen(req.user._id);
+    res.send('Notification has been seen by user.');
 });
 
 module.exports = router;
