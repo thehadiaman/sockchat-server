@@ -1,6 +1,7 @@
 const {database} = require("./connection");
 const databaseConfig = require('./config.json');
 const bcrypt = require('bcrypt');
+const { ObjectId } = require("mongodb");
 
 exports.User = {
     getUser: (filter)=>{
@@ -154,5 +155,31 @@ exports.User = {
             });
             return 'Followed';
         }
+    },
+    findUsersByArray: async (users)=>{
+        
+        let x = 0;
+        for(let n of users){
+            users[x] = ObjectId(n);
+            x++;
+        }
+
+        let usersList = await database().collection(databaseConfig.USER_COLLECTION).aggregate([
+            {
+                $match: {
+                    _id: {$in: users}
+                }
+            }
+        ]).toArray();
+
+        let isUsersExists = true;
+
+        for(let a=0;a<usersList.length;a++){
+            if(toString(users[a])!==toString(usersList[a]._id)){
+                isUsersExists = false;
+            }
+        }
+
+        return isUsersExists;
     }
 };

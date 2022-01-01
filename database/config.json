@@ -1,5 +1,6 @@
 {
     "USER_COLLECTION": "users",
     "SOCKET_COLLECTION": "sockets",
-    "NOTIFICATION_COLLECTION": "notifications"
+    "NOTIFICATION_COLLECTION": "notifications",
+    "MESSAGE_COLLECTION": "messages"
 }

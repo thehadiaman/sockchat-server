@@ -57,6 +57,11 @@ router.get('/getUsers', async(req, res)=>{
     if(!searchString) return res.send([]);
 
     const users = await User.getUsers(searchString);
+
+    for(let a=0;a<users.length;a++){
+        users[a] = _.pick(users[a], ['_id', 'name', 'username']);
+    }
+
     res.send(users);
 });
 
@@ -64,8 +69,9 @@ router.get('/getUser/:username', async(req, res)=>{
     const username = req.params.username;
     if(!username) return res.status(400).send({});
 
-    const user = await User.getUser({username: username});
+    let user = await User.getUser({username: username});
     if(!user) return res.status(400).send({});
+    user = _.pick(user, ['_id', 'name', 'bio', 'following', 'followers', 'username', 'posts']);
     res.send(user);
 });
 
